@@ -2,15 +2,15 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format, subDays, startOfDay, isSameDay } from "date-fns"; // Import isSameDay
+import { format, subDays, startOfDay, isSameDay } from "date-fns";
 import { Calendar as CalendarIcon, DollarSign, Receipt, Users } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "../../components/ui/button";
+import { Calendar } from "../../components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 
 type Bill = {
     id: string;
@@ -41,12 +41,10 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
 
     const [date, setDate] = useState<Date | undefined>(initialStartDate);
     
-    // *** NEW LOGIC: Determine which filter button should be highlighted ***
     const activeFilter = useMemo(() => {
         const startDateParam = searchParams.get('startDate');
         const today = startOfDay(new Date());
         
-        // If there's no date in the URL, default to 'today'
         if (!startDateParam) return 'today'; 
 
         const startDate = startOfDay(new Date(startDateParam));
@@ -55,7 +53,7 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
         if (isSameDay(startDate, subDays(today, 6))) return '7d';
         if (isSameDay(startDate, subDays(today, 29))) return '30d';
 
-        return 'custom'; // A custom date was selected via the calendar
+        return 'custom';
     }, [searchParams]);
 
 
@@ -81,14 +79,14 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Dashboard</h2>
                 <div className="flex items-center gap-2">
-                    {/* *** UPDATED BUTTONS: Conditionally change variant based on activeFilter *** */}
-                    <Button variant={activeFilter === 'today' ? 'default' : 'outline'} onClick={() => handleFilterChange('today')}>Today</Button>
-                    <Button variant={activeFilter === '7d' ? 'default' : 'outline'} onClick={() => handleFilterChange('7d')}>Last 7 Days</Button>
-                    <Button variant={activeFilter === '30d' ? 'default' : 'outline'} onClick={() => handleFilterChange('30d')}>Last 30 Days</Button>
+                    {/* *** THE FIX IS HERE: Use 'secondary' for the active variant *** */}
+                    <Button variant={activeFilter === 'today' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('today')}>Today</Button>
+                    <Button variant={activeFilter === '7d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('7d')}>Last 7 Days</Button>
+                    <Button variant={activeFilter === '30d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('30d')}>Last 30 Days</Button>
                     
                     <Popover>
                         <PopoverTrigger asChild>
-                             <Button variant={activeFilter === 'custom' ? 'default' : 'outline'} className="w-[280px] justify-start text-left font-normal">
+                             <Button variant={activeFilter === 'custom' ? 'secondary' : 'outline'} className="w-[280px] justify-start text-left font-normal">
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {date ? format(date, "PPP") : <span>Pick a start date</span>}
                             </Button>
