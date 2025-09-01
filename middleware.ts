@@ -4,13 +4,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // *** THE KEY FIX IS HERE: An explicit check for public routes ***
-  // If the requested page is the public bill page, we do nothing and let it pass through.
+  // *** THE KEY FIX IS HERE: An explicit check for ANY public route ***
+  // If the requested page is the public bill page, we do nothing and let it pass through immediately.
+  // This check now runs before any Supabase or user logic.
   if (pathname.startsWith('/bill')) {
     return NextResponse.next()
   }
 
-  // --- All the code below will now ONLY run for protected pages ---
+  // --- All the authentication code below will now ONLY run for non-public pages ---
 
   let response = NextResponse.next({
     request: {
@@ -42,7 +43,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // If no user is found and they are trying to access the dashboard, redirect to login.
+  // If no user is found and they are trying to access a protected page (like the dashboard), redirect to login.
   if (!user && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
@@ -55,12 +56,13 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// We update the matcher to be simpler. The logic is now handled inside the function.
+// We update the matcher to be simpler and more explicit.
+// The routing logic is now handled inside the function itself.
 export const config = {
   matcher: [
     '/dashboard/:path*', // Protect all dashboard pages
     '/login',
     '/signup',
-    '/bill/:path*', // IMPORTANT: We include '/bill' so the middleware runs and can explicitly ignore it at the top.
+    '/bill/:path*', // IMPORTANT: We must include '/bill' here so the middleware runs, allowing our check at the top to explicitly ignore it.
   ],
 }
