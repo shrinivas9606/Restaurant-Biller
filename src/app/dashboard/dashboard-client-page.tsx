@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { format, subDays, startOfDay, isSameDay } from "date-fns";
 import { Calendar as CalendarIcon, DollarSign, Receipt, Users } from "lucide-react";
 
-import { Button } from "../../components/ui/button";
-import { Calendar } from "../../components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Bill = {
     id: string;
@@ -76,17 +76,18 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
 
     return (
         <>
-            <div className="flex items-center justify-between mb-6">
+            {/* *** THIS SECTION IS NOW RESPONSIVE *** */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                 <h2 className="text-2xl font-bold">Dashboard</h2>
-                <div className="flex items-center gap-2">
-                    {/* *** THE FIX IS HERE: Use 'secondary' for the active variant *** */}
-                    <Button variant={activeFilter === 'today' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('today')}>Today</Button>
-                    <Button variant={activeFilter === '7d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('7d')}>Last 7 Days</Button>
-                    <Button variant={activeFilter === '30d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('30d')}>Last 30 Days</Button>
-                    
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <Button variant={activeFilter === 'today' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('today')} className="flex-1 sm:flex-none">Today</Button>
+                        <Button variant={activeFilter === '7d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('7d')} className="flex-1 sm:flex-none">7 Days</Button>
+                        <Button variant={activeFilter === '30d' ? 'secondary' : 'outline'} onClick={() => handleFilterChange('30d')} className="flex-1 sm:flex-none">30 Days</Button>
+                    </div>
                     <Popover>
                         <PopoverTrigger asChild>
-                             <Button variant={activeFilter === 'custom' ? 'secondary' : 'outline'} className="w-[280px] justify-start text-left font-normal">
+                             <Button variant={activeFilter === 'custom' ? 'secondary' : 'outline'} className="w-full sm:w-[280px] justify-start text-left font-normal">
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {date ? format(date, "PPP") : <span>Pick a start date</span>}
                             </Button>
@@ -103,7 +104,8 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            {/* *** THIS GRID IS NOW RESPONSIVE *** */}
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
