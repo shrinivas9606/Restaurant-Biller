@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-// import { Toaster } from "@/components/ui/toaster"; // For showing notifications
-// FIX: Update the import path if Toaster exists elsewhere, e.g.:
-// import { Toaster } from "../components/ui/toaster"; // For showing notifications
+import { Inter } from "next/font/google";
 import "./globals.css";
+import Toaster from "@/components/ui/toaster";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Restaurant Billing App",
-  description: "Billing & Analytics for Restaurants",
+  description: "Billing & Analytics for your restaurant.",
 };
 
 export default function RootLayout({
@@ -15,26 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        {/* Load Tailwind CSS from CDN */}
-        <script src="https://cdn.tailwindcss.com"></script>
-        {/* Load Inter font from Google Fonts CDN */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <style>{`
-          body {
-            font-family: 'Inter', sans-serif;
-          }
-        `}</style>
-      </head>
-      <body>
-        <main className="bg-background text-foreground">{children}</main>
-        {/* <Toaster /> */}
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
+        <Toaster />
       </body>
     </html>
   );
