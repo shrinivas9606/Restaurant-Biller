@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays, startOfDay, isSameDay } from "date-fns"; // Import isSameDay
 import { Calendar as CalendarIcon, DollarSign, Receipt, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// Define the shape of the data this component expects to receive
 type Bill = {
     id: string;
     table_number: number;
@@ -34,34 +33,45 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // State to control the visibility of the bills list dialog
     const [isBillDialogOpen, setBillDialogOpen] = useState(false);
 
-    // Get the initial start date from URL params or default to today
     const initialStartDate = searchParams.get('startDate') 
         ? new Date(searchParams.get('startDate') as string) 
         : startOfDay(new Date());
 
     const [date, setDate] = useState<Date | undefined>(initialStartDate);
+    
+    // *** NEW LOGIC: Determine which filter button should be highlighted ***
+    const activeFilter = useMemo(() => {
+        const startDateParam = searchParams.get('startDate');
+        const today = startOfDay(new Date());
+        
+        // If there's no date in the URL, default to 'today'
+        if (!startDateParam) return 'today'; 
 
-    // Function to handle changing the date filter
+        const startDate = startOfDay(new Date(startDateParam));
+        
+        if (isSameDay(startDate, today)) return 'today';
+        if (isSameDay(startDate, subDays(today, 6))) return '7d';
+        if (isSameDay(startDate, subDays(today, 29))) return '30d';
+
+        return 'custom'; // A custom date was selected via the calendar
+    }, [searchParams]);
+
+
     const handleFilterChange = (filter: 'today' | '7d' | '30d' | Date) => {
         const today = startOfDay(new Date());
         let newStartDate;
 
-        if (filter === 'today') {
-            newStartDate = today;
-        } else if (filter === '7d') {
-            newStartDate = subDays(today, 6);
-        } else if (filter === '30d') {
-            newStartDate = subDays(today, 29);
-        } else if (filter instanceof Date) {
+        if (filter === 'today') newStartDate = today;
+        else if (filter === '7d') newStartDate = subDays(today, 6);
+        else if (filter === '30d') newStartDate = subDays(today, 29);
+        else if (filter instanceof Date) {
             newStartDate = startOfDay(filter);
             setDate(newStartDate);
         }
 
         if (newStartDate) {
-            // Update the URL with the new start date to trigger a data refresh on the server page
             router.push(`/dashboard?startDate=${format(newStartDate, 'yyyy-MM-dd')}`);
         }
     };
@@ -71,15 +81,14 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Dashboard</h2>
                 <div className="flex items-center gap-2">
-                    {/* Preset Date Filter Buttons */}
-                    <Button variant="outline" onClick={() => handleFilterChange('today')}>Today</Button>
-                    <Button variant="outline" onClick={() => handleFilterChange('7d')}>Last 7 Days</Button>
-                    <Button variant="outline" onClick={() => handleFilterChange('30d')}>Last 30 Days</Button>
+                    {/* *** UPDATED BUTTONS: Conditionally change variant based on activeFilter *** */}
+                    <Button variant={activeFilter === 'today' ? 'default' : 'outline'} onClick={() => handleFilterChange('today')}>Today</Button>
+                    <Button variant={activeFilter === '7d' ? 'default' : 'outline'} onClick={() => handleFilterChange('7d')}>Last 7 Days</Button>
+                    <Button variant={activeFilter === '30d' ? 'default' : 'outline'} onClick={() => handleFilterChange('30d')}>Last 30 Days</Button>
                     
-                    {/* Custom Date Picker */}
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant={"outline"} className="w-[280px] justify-start text-left font-normal">
+                             <Button variant={activeFilter === 'custom' ? 'default' : 'outline'} className="w-[280px] justify-start text-left font-normal">
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {date ? format(date, "PPP") : <span>Pick a start date</span>}
                             </Button>
@@ -96,7 +105,6 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
                 </div>
             </div>
 
-            {/* Stat Cards Grid */}
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,7 +116,6 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
                     </CardContent>
                 </Card>
 
-                {/* This card triggers the dialog to show the bill list */}
                 <Dialog open={isBillDialogOpen} onOpenChange={setBillDialogOpen}>
                     <DialogTrigger asChild>
                         <Card className="cursor-pointer hover:bg-muted/50">
@@ -121,7 +128,6 @@ export function DashboardClientPage({ initialData }: { initialData: DashboardDat
                             </CardContent>
                         </Card>
                     </DialogTrigger>
-                    {/* Pop-up Dialog Content */}
                     <DialogContent className="max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Bills for Selected Period</DialogTitle>
