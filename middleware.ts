@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
@@ -12,18 +12,48 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // *** THE FIX IS HERE: Using the new get, set, and remove methods ***
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request,
+        set(name: string, value: string, options: CookieOptions) {
+          // If the cookie is set, update the request's cookies.
+          request.cookies.set({
+            name,
+            value,
+            ...options,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          // Also update the response's cookies.
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          // If the cookie is removed, update the request's cookies.
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          // Also update the response's cookies.
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
@@ -49,9 +79,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// *** THE FIX IS HERE ***
-// The matcher tells the middleware to ONLY run on the specified paths.
-// We are now explicitly excluding the public '/bill' route from protection.
+// The matcher configuration remains the same.
 export const config = {
   matcher: [
     /*
@@ -64,3 +92,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|bill).*)',
   ],
 }
+
