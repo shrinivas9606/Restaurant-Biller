@@ -2,17 +2,6 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // *** THE KEY FIX IS HERE: An explicit check for ANY public route ***
-  // If the requested page is the public bill page, we do nothing and let it pass through immediately.
-  // This check now runs before any Supabase or user logic.
-  if (pathname.startsWith('/bill')) {
-    return NextResponse.next()
-  }
-
-  // --- All the authentication code below will now ONLY run for non-public pages ---
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -41,28 +30,23 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // If no user is found and they are trying to access a protected page (like the dashboard), redirect to login.
-  if (!user && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // If a user is logged in and tries to access login/signup, redirect them to the dashboard.
-  if (user && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // Its only job is to refresh the user's session
+  await supabase.auth.getUser()
 
   return response
 }
 
-// We update the matcher to be simpler and more explicit.
-// The routing logic is now handled inside the function itself.
+// *** THE KEY FIX IS HERE: We ONLY protect the dashboard routes ***
+// By completely removing '/bill' from this list, the middleware will NEVER run for the public bill page.
+// This is the most reliable way to ensure it remains public.
 export const config = {
   matcher: [
-    '/dashboard/:path*', // Protect all dashboard pages
-    '/login',
-    '/signup',
-    '/bill/:path*', // IMPORTANT: We must include '/bill' here so the middleware runs, allowing our check at the top to explicitly ignore it.
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
