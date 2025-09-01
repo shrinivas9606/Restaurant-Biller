@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// This is the shape of the data we expect to get from our new API route
+// This is the shape of the data we expect to get from our new API route.
 type BillDetails = {
     id: string;
     table_number: number;
@@ -49,12 +49,20 @@ export default function BillPage({ params }: { params: { billId: string } }) {
 
     // Show a loading message while the data is being fetched.
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center font-sans">Loading bill...</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center font-sans">
+                <p>Loading bill...</p>
+            </div>
+        );
     }
 
     // Show an error message if the fetch failed or no bill was found.
     if (error || !bill) {
-        return <div className="min-h-screen flex items-center justify-center font-sans">Error: Could not load bill details.</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center font-sans">
+                <p className="text-red-500">Error: Could not load bill details.</p>
+            </div>
+        );
     }
 
     // Safely access restaurant and item details for rendering.
