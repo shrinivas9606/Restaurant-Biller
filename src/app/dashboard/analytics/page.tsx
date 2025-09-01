@@ -28,14 +28,20 @@ async function getSalesData(restaurantId: string) {
         return [];
     }
 
+    // Define the type for items returned from Supabase
+    type BillItem = {
+        quantity: number;
+        price: number;
+        menu_items: { name: string };
+        bills: { created_at: string; restaurant_id: string };
+    };
+
     // Process data for charts
-    return data.map(item => ({
-        // @ts-ignore
-        name: item.menu_items.name,
+    return data.map((item: any) => ({
+        name: Array.isArray(item.menu_items) ? item.menu_items[0]?.name ?? 'Unknown Item' : item.menu_items?.name ?? 'Unknown Item',
         quantity: item.quantity,
         revenue: item.quantity * item.price,
-        // @ts-ignore
-        date: new Date(item.bills.created_at).toLocaleDateString(),
+        date: Array.isArray(item.bills) ? new Date(item.bills[0]?.created_at).toLocaleDateString() : new Date(item.bills?.created_at).toLocaleDateString(),
     }));
 }
 
