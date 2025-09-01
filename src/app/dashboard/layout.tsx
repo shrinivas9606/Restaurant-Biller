@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import DashboardLayoutClient from "./layout-client"; // We will create this next
+import DashboardLayoutClient from "./layout-client";
 
-// This is now a Server Component. Its only job is to protect the routes.
+// This Server Component now acts as the security guard for all dashboard pages.
 export default async function DashboardLayout({
   children,
 }: {
@@ -14,13 +14,12 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If no user is logged in, redirect them to the login page.
-  // This check now runs reliably on the server for every dashboard page.
+  // If no user is logged in, this will reliably redirect to the login page.
   if (!user) {
     redirect("/login");
   }
 
-  // If the user is logged in, render the client-side layout and the page content.
+  // If the user is logged in, it will render the UI.
   return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 }
 
