@@ -12,7 +12,7 @@ export async function createBill(formData: FormData) {
 
     const { data: restaurant, error: restaurantError } = await supabase
         .from('restaurants')
-        .select('id, name') // Also get the restaurant name for the message
+        .select('id, name')
         .eq('owner_id', user.id)
         .single();
 
@@ -69,24 +69,22 @@ export async function createBill(formData: FormData) {
         return { error: "Failed to save bill items." };
     }
 
-    // 6. *** NEW: Generate WhatsApp "Click to Chat" Link ***
-    const billUrl = `${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/bill/${newBill.id}`;
+    // *** THE FIX IS HERE: Use the new, reliable environment variable ***
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const billUrl = `${siteUrl}/bill/${newBill.id}`;
+
     const message = `Thank you for dining at ${restaurant.name}! Your total bill is Rs. ${totalAmount.toFixed(2)}. Please find your detailed bill here: ${billUrl}`;
     
-    // URL-encode the message to handle spaces and special characters
     const encodedMessage = encodeURIComponent(message);
     
-    // Create the WhatsApp link. Assumes Indian phone numbers, adds '91' if missing.
     const cleanPhoneNumber = customerPhone.replace(/\D/g, '');
     const whatsappPhoneNumber = cleanPhoneNumber.length === 10 ? `91${cleanPhoneNumber}` : cleanPhoneNumber;
     const whatsappUrl = `https://wa.me/${whatsappPhoneNumber}?text=${encodedMessage}`;
     
     revalidatePath("/dashboard/billing");
     
-    // Return the success message AND the WhatsApp URL
     return { 
         success: `Bill ${newBill.id.substring(0,8)} created successfully!`,
         whatsappUrl: whatsappUrl 
     };
 }
-
