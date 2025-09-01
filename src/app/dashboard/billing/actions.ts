@@ -69,7 +69,7 @@ export async function createBill(formData: FormData) {
         return { error: "Failed to save bill items." };
     }
 
-    // *** THE FIX IS HERE: Use the new, reliable environment variable ***
+    // This now uses your reliable, custom environment variable
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const billUrl = `${siteUrl}/bill/${newBill.id}`;
 
@@ -88,3 +88,4 @@ export async function createBill(formData: FormData) {
         whatsappUrl: whatsappUrl 
     };
 }
+
