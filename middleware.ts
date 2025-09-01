@@ -30,23 +30,22 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Its only job is to refresh the user's session
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // If no user is found, redirect them to the login page.
+  // This logic is now safe because this middleware ONLY runs on protected routes.
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 
   return response
 }
 
-// *** THE KEY FIX IS HERE: We ONLY protect the dashboard routes ***
-// By completely removing '/bill' from this list, the middleware will NEVER run for the public bill page.
-// This is the most reliable way to ensure it remains public.
+// *** THE DEFINITIVE FIX IS HERE ***
+// This matcher ONLY runs the middleware on routes that start with '/dashboard'.
+// It will completely ignore '/login', '/signup', '/bill', and the homepage.
+// This is the most reliable way to ensure public routes remain public.
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/dashboard/:path*'],
 }
+
