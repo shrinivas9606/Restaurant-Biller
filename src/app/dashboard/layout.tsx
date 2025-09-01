@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { createClient } from "../../lib/supabase/client";
+import { Button } from "../../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
 import {
   Home,
   Menu,
@@ -74,7 +74,6 @@ export default function DashboardLayout({
             </SheetTrigger>
 
             {/* --- MOBILE SIDEBAR (SHEET) --- */}
-            {/* *** THIS SECTION IS NOW FIXED *** */}
             <SheetContent side="left" className="sm:max-w-xs">
               <div className="flex flex-col h-full">
                 <nav className="grid gap-6 text-lg font-medium flex-grow">
